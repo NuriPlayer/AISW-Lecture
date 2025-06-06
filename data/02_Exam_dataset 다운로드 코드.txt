@@ -1,0 +1,39 @@
+##### Colab 환경에서 실행하세요 #####
+import pandas as pd
+import numpy as np
+
+# 1. 시드 고정 및 학생 수 설정
+np.random.seed(42)
+n_students = 1000
+
+# 2. 각 학생의 기저 수학 능력을 생성 (평균 75, 표준편차 10, 최소 40점 이상)
+base_ability = np.clip(np.random.normal(loc=75, scale=10, size=n_students), 40, 100)
+
+# 3. 시험별 점수를 생성하는 함수 (기저 능력 + 시험별 노이즈)
+def generate_test_scores(base, noise_std):
+    scores = base + np.random.normal(loc=0, scale=noise_std, size=base.shape)
+    # 0 ~ 100 범위로 클리핑 후, 정수형으로 변환
+    return np.clip(np.round(scores), 0, 100).astype(int)
+
+# 4. 각 시험별 수학 점수 생성
+score_6 = generate_test_scores(base_ability, noise_std=7)  # 6월 모의고사: 약간의 변동성
+score_9 = generate_test_scores(base_ability, noise_std=5)  # 9월 모의고사: 변동성 감소
+score_10 = generate_test_scores(base_ability, noise_std=5) # 10월 모의고사: 변동성 동일
+score_Final = generate_test_scores(base_ability, noise_std=3)  # 수능: 비교적 안정적인 성적
+
+# 5. DataFrame 생성: 학생 ID와 각 시험 점수를 포함
+df_math = pd.DataFrame({
+    'student_id': [f"S{1000+i}" for i in range(n_students)],
+    '6': score_6,
+    '9': score_9,
+    '10': score_10,
+    'Final': score_Final
+})
+
+# 6. DataFrame을 CSV 파일로 저장 (index 제외)
+df_math.to_csv('02_Exam_dataset.csv', index=False)
+print("02_Exam_dataset.csv 파일이 생성되었습니다.")
+
+# 7. Colab 환경에서 CSV 파일 다운로드
+from google.colab import files
+files.download('02_Exam_dataset.csv')
